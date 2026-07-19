@@ -12,8 +12,6 @@ import androidx.navigation.NavType
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-import com.example.mobilesurapp.UIApp.Camera.CameraScreen
-import com.example.mobilesurapp.UIApp.Camera.CameraViewModel
 import com.example.mobilesurapp.UIApp.login.LoginScreen
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
 import com.example.mobilesurapp.UIApp.addFace.AddFaceScreen
@@ -21,7 +19,7 @@ import com.example.mobilesurapp.UIApp.login.BiometricLoginScreen
 import com.example.mobilesurapp.UIApp.login.ReAuthScreen
 import com.example.mobilesurapp.UIApp.profile.ProfileScreen
 import com.example.mobilesurapp.UIApp.edit_profile.EditProfileScreen
-
+import com.example.mobilesurapp.UIApp.attendance.AttendanceRoute
 
 @Composable
 fun AppNavGraph(
@@ -51,17 +49,9 @@ fun AppNavGraph(
             )
         }
         composable("camera") {
-            val cameraViewModel =
-                hiltViewModel<CameraViewModel>(viewModelStoreOwner = activityViewModelStoreOwner)
-            CameraScreen(
-                viewModel = cameraViewModel,
-
-                onNavigateToProfile = {
-                    navController.navigate("profile")
-                },
-
-                onNavigateToAddFace = {
-                    navController.navigate("addFace")
+            AttendanceRoute(
+                onExitClick = {
+                    navController.popBackStack()
                 }
             )
         }
