@@ -27,42 +27,53 @@ import com.example.mobilesurapp.ui.theme.MobileSurAppTheme
 @Composable
 fun AttendanceStatusCard(
     status: AttendanceStatus,
+    countdown: Int,
     modifier: Modifier = Modifier
 ) {
 
     val icon = when (status) {
         AttendanceStatus.Idle -> Icons.Rounded.Face
-        AttendanceStatus.Detecting -> Icons.Rounded.HourglassTop
+        AttendanceStatus.Collecting -> Icons.Rounded.Face
+        AttendanceStatus.Verifying -> Icons.Rounded.HourglassTop
         is AttendanceStatus.Success -> Icons.Rounded.CheckCircle
-        AttendanceStatus.Failed -> Icons.Rounded.Error
+        is AttendanceStatus.Failed -> Icons.Rounded.Error
     }
 
     val iconColor = when (status) {
         AttendanceStatus.Idle -> Color(0xFF34C759)
-        AttendanceStatus.Detecting -> Color(0xFFFFB547)
+        AttendanceStatus.Collecting -> Color(0xFFFFB547)
+        AttendanceStatus.Verifying -> Color(0xFF0A84FF)
         is AttendanceStatus.Success -> Color(0xFF34C759)
-        AttendanceStatus.Failed -> Color(0xFFFF453A)
+        is AttendanceStatus.Failed -> Color(0xFFFF453A)
     }
 
     val title = when (status) {
-        AttendanceStatus.Idle -> "Ready to Scan"
-        AttendanceStatus.Detecting -> "Detecting Face"
-        is AttendanceStatus.Success -> "Welcome ${status.employeeName}"
-        AttendanceStatus.Failed -> "Face Not Recognized"
+        AttendanceStatus.Idle -> "Looking for Face"
+        AttendanceStatus.Collecting -> "Hold Still"
+        AttendanceStatus.Verifying -> "Verifying Identity"
+        is AttendanceStatus.Success -> "Attendance Recorded"
+        is AttendanceStatus.Failed -> "Face Not Recognized"
     }
 
     val subtitle = when (status) {
-        AttendanceStatus.Idle ->
-            "Position your face inside the guide."
 
-        AttendanceStatus.Detecting ->
-            "Hold still while verifying."
+        AttendanceStatus.Idle ->
+            "Position your face inside the frame."
+
+        AttendanceStatus.Collecting ->
+            if (countdown > 0)
+                "Capturing face... $countdown"
+            else
+                "Capturing face..."
+
+        AttendanceStatus.Verifying ->
+            "Checking your identity..."
 
         is AttendanceStatus.Success ->
-            "Attendance recorded successfully."
+            "Welcome back, ${status.employeeName}"
 
-        AttendanceStatus.Failed ->
-            "Please try again."
+        is AttendanceStatus.Failed ->
+            status.message
     }
 
     Card(
@@ -140,21 +151,29 @@ private fun AttendanceStatusCardPreview() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(16.dp)
         ) {
-
             AttendanceStatusCard(
-                status = AttendanceStatus.Idle
+                status = AttendanceStatus.Idle,
+                countdown = 0
             )
 
             AttendanceStatusCard(
-                status = AttendanceStatus.Detecting
+                status = AttendanceStatus.Collecting,
+                countdown = 3
             )
 
             AttendanceStatusCard(
-                status = AttendanceStatus.Success("Arya")
+                status = AttendanceStatus.Verifying,
+                countdown = 0
             )
 
             AttendanceStatusCard(
-                status = AttendanceStatus.Failed
+                status = AttendanceStatus.Success("Arya"),
+                countdown = 0
+            )
+
+            AttendanceStatusCard(
+                status = AttendanceStatus.Failed("Please try again."),
+                countdown = 0
             )
 
         }

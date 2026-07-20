@@ -8,13 +8,31 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.example.mobilesurapp.UIApp.attendance.model.AttendanceStatus
 
 @Composable
 fun FaceGuide(
-    modifier: Modifier = Modifier,
-    color: Color = Color(0xFF18C964)
+    status: AttendanceStatus,
+    modifier: Modifier = Modifier
 ) {
+    val guideColor = when (status) {
 
+        AttendanceStatus.Idle ->
+            Color.White
+
+        AttendanceStatus.Collecting ->
+            Color(0xFFFFB547)
+
+        AttendanceStatus.Verifying ->
+            Color(0xFF0A84FF)
+
+        is AttendanceStatus.Success ->
+            Color(0xFF34C759)
+
+        is AttendanceStatus.Failed ->
+            Color(0xFFFF453A)
+
+    }
     Canvas(
         modifier = modifier.fillMaxSize()
     ) {
@@ -38,7 +56,7 @@ fun FaceGuide(
 
         // Top Left
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(left, top + cornerLength),
             end = Offset(left, top),
             strokeWidth = strokeWidth,
@@ -46,7 +64,7 @@ fun FaceGuide(
         )
 
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(left, top),
             end = Offset(left + cornerLength, top),
             strokeWidth = strokeWidth,
@@ -55,7 +73,7 @@ fun FaceGuide(
 
         // Top Right
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(right - cornerLength, top),
             end = Offset(right, top),
             strokeWidth = strokeWidth,
@@ -63,7 +81,7 @@ fun FaceGuide(
         )
 
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(right, top),
             end = Offset(right, top + cornerLength),
             strokeWidth = strokeWidth,
@@ -72,7 +90,7 @@ fun FaceGuide(
 
         // Bottom Left
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(left, bottom - cornerLength),
             end = Offset(left, bottom),
             strokeWidth = strokeWidth,
@@ -80,7 +98,7 @@ fun FaceGuide(
         )
 
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(left, bottom),
             end = Offset(left + cornerLength, bottom),
             strokeWidth = strokeWidth,
@@ -89,7 +107,7 @@ fun FaceGuide(
 
         // Bottom Right
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(right - cornerLength, bottom),
             end = Offset(right, bottom),
             strokeWidth = strokeWidth,
@@ -97,7 +115,7 @@ fun FaceGuide(
         )
 
         drawLine(
-            color = color,
+            color = guideColor,
             start = Offset(right, bottom - cornerLength),
             end = Offset(right, bottom),
             strokeWidth = strokeWidth,

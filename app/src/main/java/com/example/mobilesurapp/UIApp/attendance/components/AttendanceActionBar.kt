@@ -22,6 +22,7 @@ import com.example.mobilesurapp.ui.theme.MobileSurAppTheme
 @Composable
 fun AttendanceActionBar(
     modifier: Modifier = Modifier,
+    enabled: Boolean,
     onSwitchCameraClick: () -> Unit
 ) {
 
@@ -30,6 +31,7 @@ fun AttendanceActionBar(
             .fillMaxWidth()
             .height(58.dp),
 
+        enabled = enabled,
         onClick = onSwitchCameraClick,
 
         colors = ButtonDefaults.buttonColors(
@@ -54,16 +56,18 @@ fun AttendanceActionBar(
 
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun AttendanceActionBarPreview() {
-
-    MobileSurAppTheme {
-
-        AttendanceActionBar(
-            onSwitchCameraClick = {}
-        )
-
-    }
-
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun AttendanceActionBarPreview() {
+//
+//    MobileSurAppTheme {
+//
+//        AttendanceActionBar(
+//            onSwitchCameraClick = {},
+//            modifier = TODO(),
+//            enabled = TODO()
+//        )
+//
+//    }
+//
+//}

@@ -1,6 +1,7 @@
 package com.example.mobilesurapp.UIApp.attendance
 
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,12 +72,21 @@ fun AttendanceScreen(
                     .padding(horizontal = 24.dp, vertical = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                AnimatedContent(
+                    targetState = uiState.status,
+                    label = "AttendanceStatus"
+                ) { status ->
 
-                AttendanceStatusCard(
-                    status = uiState.status
-                )
+                    AttendanceStatusCard(
+                        status = status,
+                        countdown = uiState.countdown
+                    )
+
+                }
 
                 AttendanceActionBar(
+                    enabled =
+                        uiState.status == AttendanceStatus.Idle,
                     onSwitchCameraClick = onSwitchCameraClick
                 )
 

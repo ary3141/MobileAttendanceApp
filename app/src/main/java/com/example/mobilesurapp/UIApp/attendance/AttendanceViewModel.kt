@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 
 @HiltViewModel
 class AttendanceViewModel @Inject constructor(
@@ -48,6 +49,12 @@ class AttendanceViewModel @Inject constructor(
     private var lastRotation = 0
 
     private val cropExpansionFactor = 0.9f
+
+    private var isCollecting = false
+
+    private var latestDetection: FaceDetectorResult? = null
+
+    private var collectionJob: Job? = null
 
     init {
         initializeDetector()
@@ -117,40 +124,70 @@ class AttendanceViewModel @Inject constructor(
         result: FaceDetectorResult
     ) {
 
-        val detected =
-            result.detections().isNotEmpty()
+        if (result.detections().isEmpty()) {
 
-        if (!detected) {
+            if (!isCollecting) {
 
-            _uiState.update {
+                _uiState.update {
 
-                it.copy(
-                    isFaceDetected = false,
-                    isVerifying = false,
-                    status = AttendanceStatus.Idle
-                )
+                    it.copy(
+                        status = AttendanceStatus.Idle,
+                        isFaceDetected = false
+                    )
+
+                }
 
             }
 
             return
+
         }
+
+        latestDetection = result
+
+        if (isCollecting) return
+
+        isCollecting = true
 
         _uiState.update {
 
             it.copy(
-                isFaceDetected = true,
-                status = AttendanceStatus.Detecting
+                status = AttendanceStatus.Collecting,
+                isFaceDetected = true
             )
 
         }
 
-        viewModelScope.launch {
+        collectionJob?.cancel()
 
-            delay(1200)
+        collectionJob = viewModelScope.launch {
 
-            verifyFace(result)
+            for (second in COUNTDOWN_SECONDS downTo 1) {
+                _uiState.update {
+                    it.copy(countdown = second)
+                }
+                delay(1000)
+            }
+
+            verifyCollectedFace()
 
         }
+
+    }
+
+    private fun verifyCollectedFace() {
+
+        val detection = latestDetection
+
+        if (detection == null) {
+
+            resetScanner()
+
+            return
+
+        }
+
+        verifyFace(detection)
 
     }
 
@@ -161,7 +198,10 @@ class AttendanceViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
 
             _uiState.update {
-                it.copy(isVerifying = true)
+                it.copy(
+                    status = AttendanceStatus.Verifying,
+                    isVerifying = true
+                )
             }
 
             try {
@@ -272,21 +312,10 @@ class AttendanceViewModel @Inject constructor(
                             verification.matchedUser != null
                         ) {
 
-                            _uiState.update {
-
-                                it.copy(
-                                    status =
-                                        AttendanceStatus.Success(
-                                            verification.matchedUser.name
-                                        ),
-                                    employeeName =
-                                        verification.matchedUser.name,
-                                    similarity =
-                                        verification.distance,
-                                    isVerifying = false
-                                )
-
-                            }
+                            showSuccess(
+                                verification.matchedUser.name,
+                                verification.distance
+                            )
 
                         } else {
 
@@ -324,24 +353,54 @@ class AttendanceViewModel @Inject constructor(
 
                 showFailure()
 
+            } finally {
+
+                latestDetection = null
+
             }
 
         }
 
     }
-
-    private fun showFailure() {
+    private suspend fun showSuccess(
+        name: String,
+        similarity: Float?
+    ) {
 
         _uiState.update {
 
             it.copy(
-                status = AttendanceStatus.Failed,
+                status = AttendanceStatus.Success(name),
+                employeeName = name,
+                similarity = similarity,
+                isVerifying = false
+            )
+
+        }
+
+        delay(SUCCESS_DURATION)
+
+        resetScanner()
+
+    }
+    private suspend fun showFailure(
+        message: String = "Face not recognized"
+    ) {
+
+        _uiState.update {
+
+            it.copy(
+                status = AttendanceStatus.Failed(message),
                 employeeName = null,
                 similarity = null,
                 isVerifying = false
             )
 
         }
+
+        delay(FAILURE_DURATION)
+
+        resetScanner()
 
     }
 
@@ -360,6 +419,28 @@ class AttendanceViewModel @Inject constructor(
         }
 
     }
+    private fun resetScanner() {
+
+        collectionJob?.cancel()
+
+        isCollecting = false
+
+        latestDetection = null
+
+        _uiState.update {
+            AttendanceUiState(
+                cameraState = it.cameraState,
+                countdown = 0
+            )
+        }
+
+    }
+
+    companion object {
+        private const val COUNTDOWN_SECONDS = 3
+        private const val SUCCESS_DURATION = 2500L
+        private const val FAILURE_DURATION = 2000L
+    }
 
     override fun onCleared() {
 
@@ -372,4 +453,6 @@ class AttendanceViewModel @Inject constructor(
         lastBitmap = null
 
     }
+
+
 }

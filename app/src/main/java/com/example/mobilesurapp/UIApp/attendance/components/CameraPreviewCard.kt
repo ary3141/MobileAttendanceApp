@@ -119,10 +119,8 @@ fun CameraPreviewCard(
 
                 if (showFaceGuide) {
                     FaceGuide(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 200.dp),
-                        color = guideColor
+                        status = uiState.status,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 

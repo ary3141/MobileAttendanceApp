@@ -14,5 +14,7 @@ data class AttendanceUiState(
 
     val similarity: Float? = null,
 
-    val isVerifying: Boolean = false
+    val isVerifying: Boolean = false,
+
+    val countdown: Int = 0
 )
