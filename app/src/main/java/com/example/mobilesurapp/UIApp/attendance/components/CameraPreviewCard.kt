@@ -96,6 +96,7 @@ fun CameraPreviewCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(bottom = 150.dp)
                             .background(Color(0xFF202124)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -120,7 +121,9 @@ fun CameraPreviewCard(
                 if (showFaceGuide) {
                     FaceGuide(
                         status = uiState.status,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 250.dp)
                     )
                 }
 
