@@ -262,20 +262,6 @@ Jetpack Compose UI
 | Concurrency | Kotlin Coroutines |
 | State Management | StateFlow |
 
-## Tech Stack
-
--   Kotlin
--   Jetpack Compose
--   MVVM
--   Clean Architecture
--   Hilt
--   Room
--   CameraX
--   MediaPipe
--   Gson
--   Coroutines
--   StateFlow
--   WebSocket
 
 ## Application Flow
 
