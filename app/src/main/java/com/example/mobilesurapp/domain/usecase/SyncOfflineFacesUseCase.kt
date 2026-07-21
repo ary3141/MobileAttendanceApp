@@ -2,9 +2,7 @@ package com.example.mobilesurapp.domain.usecase
 
 import android.util.Log
 import com.example.mobilesurapp.api.ApiResult
-import com.example.mobilesurapp.api.WebSocketClient
-import com.example.mobilesurapp.model.PendingSyncData
-import com.example.mobilesurapp.model.User
+import com.example.mobilesurapp.model.Employee
 import com.example.mobilesurapp.repository.FaceRepository
 import com.example.mobilesurapp.domain.utils.NetworkUtils
 import kotlinx.coroutines.flow.first
@@ -12,59 +10,78 @@ import javax.inject.Inject
 
 class SyncOfflineFacesUseCase @Inject constructor(
     private val faceRepository: FaceRepository,
-    private val webSocketClient: WebSocketClient,
     private val networkUtils: NetworkUtils
 ) {
+
     suspend operator fun invoke(): Boolean {
+
         if (!networkUtils.isOnline()) {
-            Log.d("SyncOfflineFacesUseCase", "Device is offline, skipping sync.")
+            Log.d("SyncOfflineFaces", "Offline, skipping sync.")
             return false
         }
 
-        Log.d("SyncOfflineFacesUseCase", "Waiting for WebSocket client to be connected...")
-        val isWebSocketConnected = webSocketClient.isConnected.first { it }
-        if (!isWebSocketConnected) {
-            Log.e("SyncOfflineFacesUseCase", "WebSocket client is not connected, cannot sync online.")
-            return false
-        }
+        val pendingSyncs =
+            faceRepository.getPendingSyncs().first()
 
-
-        val pendingSyncs = faceRepository.getPendingSyncs().first()
         if (pendingSyncs.isEmpty()) {
-            Log.d("SyncOfflineFacesUseCase", "No pending sync operations.")
+            Log.d("SyncOfflineFaces", "No pending syncs.")
             return true
         }
 
-        var allSyncedSuccessfully = true
+        val employees =
+            faceRepository.getLocalEmployees().first()
 
-        for (syncItem in pendingSyncs) {
-            val user = faceRepository.getLocalUsers().first().find { it.localId == syncItem.userLocalId }
+        var allSuccess = true
 
-            if (user == null) {
-                faceRepository.deleteLocalUser(syncItem.userLocalId)
-                faceRepository.markUserForSync(syncItem.userLocalId, "DELETE")
-                continue
-            }
+        for (sync in pendingSyncs) {
 
-            when (syncItem.action) {
+            when (sync.action) {
+
                 "ADD" -> {
 
-                    val result = webSocketClient.sendInsertFaceRequest(user)
-                    if (result is ApiResult.Success && result.data) {
+                    val employee = employees.find {
+                        it.localId == sync.localEntityId
+                    }
 
-                        faceRepository.deleteLocalUser(syncItem.userLocalId)
-                        faceRepository.clearPendingSyncs()
-                    } else if (result is ApiResult.Error) {
-                        Log.e("SyncOfflineFacesUseCase", "Failed to sync ADD for user")
-                        allSyncedSuccessfully = false
+                    if (employee == null) {
+                        continue
+                    }
+                    when (
+                        faceRepository.registerEmployeeWithFace(employee)
+                    ) {
+
+                        is ApiResult.Success -> {
+                            faceRepository.clearPendingSyncs()
+                            Log.d("SyncOfflineFaces", "Employee synced successfully.")
+                        }
+
+                        is ApiResult.Error -> {
+                            allSuccess = false
+                            Log.e("SyncOfflineFaces", "Failed to sync employee.")
+                        }
+
+                        is ApiResult.Loading -> {
+                            // Nothing to do
+                        }
                     }
                 }
+
                 "DELETE" -> {
-                    Log.d("SyncOfflineFacesUseCase", "Attempting to sync DELETE for user")
+
+                    faceRepository.deleteLocalEmployee(
+                        sync.localEntityId
+                    )
+
                     faceRepository.clearPendingSyncs()
+
+                    Log.d(
+                        "SyncOfflineFaces",
+                        "Delete synced."
+                    )
                 }
             }
         }
-        return allSyncedSuccessfully
+
+        return allSuccess
     }
 }

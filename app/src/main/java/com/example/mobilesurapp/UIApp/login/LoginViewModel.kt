@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
+import com.example.mobilesurapp.api.ApiResult
 import com.example.mobilesurapp.domain.usecase.LoginUseCase
 
 @HiltViewModel
@@ -45,26 +46,48 @@ class LoginViewModel @Inject constructor(
     }
 
     fun login(onSuccess: (String) -> Unit) {
+
         viewModelScope.launch {
+
             _isLoggingIn.value = true
             _loginError.value = null
             _jwtToken.value = null
 
-            val result = loginUseCase.execute(_email.value, _password.value)
+            when (val result = loginUseCase(_email.value, _password.value)) {
 
-            result.onSuccess { data ->
-                val tokenStr = data.first
-                val adminId = data.second
+                is ApiResult.Success -> {
 
-                _jwtToken.value = tokenStr
+                    val login = result.data
 
-                onSuccess(adminId)
-            }.onFailure { exception ->
-                _loginError.value = exception.message ?: "Login gagal"
-                Log.e("LoginViewModel", "Login failed: ${_loginError.value}")
+                    _jwtToken.value = login.token
+
+                    val adminId = login.adminId.toString()
+
+                    loginStateViewModel.login(adminId)
+
+                    onSuccess(adminId)
+
+                }
+
+                is ApiResult.Error -> {
+
+                    _loginError.value =
+                        result.exception.message ?: "Login gagal"
+
+                    Log.e(
+                        "LoginViewModel",
+                        _loginError.value ?: ""
+                    )
+
+                }
+
+                ApiResult.Loading -> Unit
+
             }
+
             _isLoggingIn.value = false
-            Log.d("LoginViewModel", "isLoggingIn set to false after login attempt.")
+
         }
+
     }
 }

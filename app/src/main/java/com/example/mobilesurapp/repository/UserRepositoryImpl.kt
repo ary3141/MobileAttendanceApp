@@ -1,8 +1,8 @@
 package com.example.mobilesurapp.repository
 
-import com.example.mobilesurapp.database.dao.UserDao
+import com.example.mobilesurapp.database.dao.EmployeeDao
 import com.example.mobilesurapp.database.dao.PendingSyncDao
-import com.example.mobilesurapp.model.User
+import com.example.mobilesurapp.model.Employee
 import com.example.mobilesurapp.model.PendingSyncData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -10,32 +10,50 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val userDao: UserDao,
+    private val employeeDao: EmployeeDao,
     private val pendingSyncDao: PendingSyncDao
 ) : UserRepository {
 
-    override suspend fun saveUserWithFace(user: User): Boolean {
+    override suspend fun saveEmployee(employee: Employee): Boolean {
         return try {
-            val localId = userDao.insertUser(user).toInt()
-            pendingSyncDao.insertPendingSync(PendingSyncData(userLocalId = localId, action = "ADD"))
+            val localId = employeeDao.insertEmployee(employee).toInt()
+
+            pendingSyncDao.insertPendingSync(
+                PendingSyncData(
+                    entityType = "EMPLOYEE",
+                    localEntityId = localId,
+                    action = "ADD",
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+
             true
         } catch (e: Exception) {
             false
         }
     }
 
-    override fun getUserById(localId: Int): Flow<User?> {
-        return userDao.getUserByLocalId(localId)
+    override fun getEmployeeById(localId: Int): Flow<Employee?> {
+        return employeeDao.getEmployeeByLocalId(localId)
     }
 
-    override fun getAllUsers(): Flow<List<User>> {
-        return userDao.getAllUsers()
+    override fun getAllEmployees(): Flow<List<Employee>> {
+        return employeeDao.getAllEmployees()
     }
 
-    override suspend fun deleteUser(localId: Int): Boolean {
+    override suspend fun deleteEmployee(localId: Int): Boolean {
         return try {
-            userDao.deleteUserByLocalId(localId)
-            pendingSyncDao.insertPendingSync(PendingSyncData(userLocalId = localId, action = "DELETE"))
+            employeeDao.deleteEmployeeByLocalId(localId)
+
+            pendingSyncDao.insertPendingSync(
+                PendingSyncData(
+                    entityType = "EMPLOYEE",
+                    localEntityId = localId,
+                    action = "DELETE",
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+
             true
         } catch (e: Exception) {
             false

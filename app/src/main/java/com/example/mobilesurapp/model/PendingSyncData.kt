@@ -6,8 +6,16 @@ import java.util.UUID
 
 @Entity(tableName = "pending_sync")
 data class PendingSyncData(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val userLocalId: Int,
+
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+
+    val entityType: String,
+
+    val localEntityId: Int,
+
     val action: String,
-    val timestamp: Long = System.currentTimeMillis()
+
+    val timestamp: Long
+
 )

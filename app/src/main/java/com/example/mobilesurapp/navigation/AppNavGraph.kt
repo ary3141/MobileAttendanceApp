@@ -1,25 +1,29 @@
 package com.example.mobilesurapp.navigation
 
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.NavHost
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
+
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 import com.example.mobilesurapp.UIApp.login.LoginScreen
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
-import com.example.mobilesurapp.UIApp.addFace.AddFaceScreen
-import com.example.mobilesurapp.UIApp.login.BiometricLoginScreen
 import com.example.mobilesurapp.UIApp.login.ReAuthScreen
+
+import com.example.mobilesurapp.UIApp.dashboard.DashboardScreen
+
+import com.example.mobilesurapp.UIApp.attendance.AttendanceRoute
+
+import com.example.mobilesurapp.UIApp.employee.EmployeeRoute
+import com.example.mobilesurapp.UIApp.add_employee.AddEmployeeRoute
+
 import com.example.mobilesurapp.UIApp.profile.ProfileScreen
 import com.example.mobilesurapp.UIApp.edit_profile.EditProfileScreen
-import com.example.mobilesurapp.UIApp.attendance.AttendanceRoute
 
 @Composable
 fun AppNavGraph(
@@ -27,115 +31,319 @@ fun AppNavGraph(
     loginStateViewModel: LoginStateViewModel,
     startDestination: String
 ) {
+
     val activityViewModelStoreOwner =
-        checkNotNull(LocalContext.current as? androidx.lifecycle.ViewModelStoreOwner) {
+        checkNotNull(
+            LocalContext.current as? androidx.lifecycle.ViewModelStoreOwner
+        ) {
             "AppNavGraph harus berada dalam konteks ViewModelStoreOwner"
         }
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+
+        /*
+         * -------------------------
+         * LOGIN
+         * -------------------------
+         */
+
         composable("login") {
+
             LoginScreen(
+
                 onLoginSuccess = { adminId ->
 
                     loginStateViewModel.setLoggedInAdmin(adminId)
 
-                    navController.navigate("camera") {
-                        popUpTo("login") { inclusive = true }
+                    navController.navigate("dashboard") {
+
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+
                     }
+
                 },
+
+                // Temporary
                 onNavigateToBiometricLogin = {
-                    navController.navigate("BiometricLogin")
+                    navController.navigate("biometric_placeholder")
                 }
+
             )
+
         }
-        composable("camera") {
-            AttendanceRoute(
-                onExitClick = {
-                    navController.popBackStack()
+
+        /*
+         * -------------------------
+         * DASHBOARD
+         * -------------------------
+         */
+
+        composable("dashboard") {
+
+            DashboardScreen(
+
+                onAttendanceClick = {
+
+                    navController.navigate("camera")
+
+                },
+
+                onEmployeeClick = {
+
+                    navController.navigate("employee")
+
+                },
+
+                onSettingsClick = {
+
+                    navController.navigate("profile")
+
                 }
+
             )
+
+        }
+
+        /*
+         * -------------------------
+         * ATTENDANCE
+         * -------------------------
+         */
+
+        composable("camera") {
+
+            AttendanceRoute(
+
+                onExitClick = {
+
+                    navController.popBackStack()
+
+                }
+
+            )
+
+        }
+
+        /*
+         * -------------------------
+         * EMPLOYEE
+         * -------------------------
+         */
+
+        composable("employee") {
+
+            EmployeeRoute(
+
+                onBackClick = {
+
+                    navController.popBackStack()
+
+                },
+
+                onAddEmployeeClick = {
+
+                    navController.navigate("addEmployee")
+
+                },
+
+                onEmployeeClick = { employeeId ->
+
+                    // TODO
+                    // Employee Detail
+
+                }
+
+            )
+
+        }
+        /*
+ * -------------------------
+ * ADD EMPLOYEE
+ * -------------------------
+ */
+
+        composable("addEmployee") {
+
+            AddEmployeeRoute(
+
+                onBackClick = {
+
+                    navController.popBackStack()
+
+                }
+
+            )
+
+        }
+
+        /*
+         * -------------------------
+         * PROFILE
+         * -------------------------
+         */
+
+        composable("profile") {
+
+            ProfileScreen(
+
+                navController = navController,
+
+                loginStateViewModel = loginStateViewModel,
+
+                onNavigateToEditProfile = { adminId, name, email ->
+
+                    val safeName =
+                        URLEncoder.encode(
+                            name,
+                            StandardCharsets.UTF_8.toString()
+                        )
+
+                    val safeEmail =
+                        URLEncoder.encode(
+                            email,
+                            StandardCharsets.UTF_8.toString()
+                        )
+
+                    navController.navigate(
+                        "UpdateProfile/$adminId/$safeName/$safeEmail"
+                    )
+
+                }
+
+            )
+
+        }
+
+        /*
+         * -------------------------
+         * EDIT PROFILE
+         * -------------------------
+         */
+
+        composable(
+
+            route = "UpdateProfile/{adminId}/{name}/{email}",
+
+            arguments = listOf(
+
+                navArgument("adminId") {
+                    type = NavType.StringType
+                },
+
+                navArgument("name") {
+                    type = NavType.StringType
+                },
+
+                navArgument("email") {
+                    type = NavType.StringType
+                }
+
+            )
+
+        ) { backStackEntry ->
+
+            val adminId =
+                backStackEntry.arguments?.getString("adminId") ?: ""
+
+            val name =
+                backStackEntry.arguments?.getString("name") ?: ""
+
+            val email =
+                backStackEntry.arguments?.getString("email") ?: ""
+
+            val decodedName =
+                java.net.URLDecoder.decode(
+                    name,
+                    StandardCharsets.UTF_8.toString()
+                )
+
+            val decodedEmail =
+                java.net.URLDecoder.decode(
+                    email,
+                    StandardCharsets.UTF_8.toString()
+                )
+
+            EditProfileScreen(
+
+                adminId = adminId,
+
+                initialName = decodedName,
+
+                initialEmail = decodedEmail,
+
+                onBackClick = {
+
+                    navController.popBackStack()
+
+                }
+
+            )
+
+        }
+
+        /*
+         * -------------------------
+         * REAUTH
+         * -------------------------
+         */
+
+        composable("reauth") {
+
+            ReAuthScreen(
+
+                onLoginSuccess = { adminId ->
+
+                    loginStateViewModel.setLoggedInAdmin(adminId)
+
+                    navController.popBackStack()
+
+                },
+
+                onNavigateBack = {
+
+                    navController.popBackStack()
+
+                }
+
+            )
+
+        }
+
+        /*
+         * -------------------------
+         * TEMP PLACEHOLDERS
+         * -------------------------
+         */
+
+        composable("biometric_placeholder") {
+
+            androidx.compose.material3.Surface {
+
+                androidx.compose.material3.Text(
+                    text = "Biometric Login Coming Soon"
+                )
+
+            }
+
         }
 
         composable("addFace") {
-            AddFaceScreen(
-                navController = navController,
-                loginStateViewModel = loginStateViewModel,
-                onNavigateToCamera = {navController.navigate("login")}
-            )
+
+            androidx.compose.material3.Surface {
+
+                androidx.compose.material3.Text(
+                    text = "Add Face has been replaced by Add Employee"
+                )
+
+            }
+
         }
 
-        composable("profile") {
-            ProfileScreen(
-                navController = navController,
-                loginStateViewModel = loginStateViewModel,
-                onNavigateToEditProfile = { adminId, name, email ->
-                    val safeName = URLEncoder.encode(name, StandardCharsets.UTF_8.toString())
-                    val safeEmail = URLEncoder.encode(email, StandardCharsets.UTF_8.toString())
-                    val targetRoute = "UpdateProfile/$adminId/$safeName/$safeEmail"
-                    navController.navigate(targetRoute)
-                }
-            )
-        }
-
-        composable(
-            route = "reauth/{targetDestination}",
-            arguments = listOf(
-                navArgument("targetDestination") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val targetDestination = backStackEntry.arguments?.getString("targetDestination") ?: "camera"
-
-            ReAuthScreen(
-                onLoginSuccess = { adminId ->
-                    loginStateViewModel.setLoggedInAdmin(adminId)
-
-                    navController.navigate(targetDestination) {
-                        popUpTo("reauth/$targetDestination") { inclusive = true }
-                    }
-                },
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable("BiometricLogin"){
-            BiometricLoginScreen(
-                onLoginSuccess = { adminId ->
-
-                    loginStateViewModel.setLoggedInAdmin(adminId)
-
-                    navController.navigate("camera") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
-                onNavigateToAddFace = { navController.navigate("reauth/addFace") },
-
-                onNavigateBack = { navController.popBackStack()}
-            )
-        }
-
-        composable(
-            route = "UpdateProfile/{adminId}/{name}/{email}",
-            arguments = listOf(
-                navArgument("adminId") { type = NavType.StringType },
-                navArgument("name") { type = NavType.StringType },
-                navArgument("email") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val adminId = backStackEntry.arguments?.getString("adminId") ?: ""
-            val name = backStackEntry.arguments?.getString("name") ?: ""
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-
-            val decodedName = java.net.URLDecoder.decode(name, StandardCharsets.UTF_8.toString())
-            val decodedEmail = java.net.URLDecoder.decode(email, StandardCharsets.UTF_8.toString())
-
-            EditProfileScreen(
-                adminId = adminId,
-                initialName = decodedName,
-                initialEmail = decodedEmail,
-                onBackClick = { navController.popBackStack("profile", inclusive = false) }
-            )
-        }
     }
+
 }

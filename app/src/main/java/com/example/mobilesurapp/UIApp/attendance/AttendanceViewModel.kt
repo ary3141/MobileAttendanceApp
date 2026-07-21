@@ -309,11 +309,11 @@ class AttendanceViewModel @Inject constructor(
 
                         if (
                             verification.isMatch &&
-                            verification.matchedUser != null
+                            verification.matchedEmployee != null
                         ) {
 
                             showSuccess(
-                                verification.matchedUser.name,
+                                verification.matchedEmployee.name,
                                 verification.distance
                             )
 

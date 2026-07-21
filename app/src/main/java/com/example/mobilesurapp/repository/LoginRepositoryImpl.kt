@@ -1,67 +1,28 @@
 package com.example.mobilesurapp.repository
 
-import android.util.Log
 import com.example.mobilesurapp.BuildConfig
-import com.example.mobilesurapp.api.WebSocketClient
-import kotlinx.coroutines.suspendCancellableCoroutine
-import org.json.JSONObject
+import com.example.mobilesurapp.api.ApiResult
+import com.example.mobilesurapp.api.LoginResponse
+import com.example.mobilesurapp.api.WebSocketService
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
 
 @Singleton
 class LoginRepositoryImpl @Inject constructor(
-    private val webSocketClient: WebSocketClient
+    private val webSocketService: WebSocketService
 ) : LoginRepository {
-    private val TAG = "LoginRepositoryImpl"
 
+    companion object {
+        private const val WEBSOCKET_URL = BuildConfig.WSS_URL
+    }
 
-    private val WEBSOCKET_URL = BuildConfig.WSS_URL
+    override suspend fun loginUser(
+        email: String,
+        password: String
+    ): ApiResult<LoginResponse> {
 
-    override suspend fun loginUser(email: String, password: String): Result<Pair<String, String>> {
-        webSocketClient.connect(WEBSOCKET_URL)
+        webSocketService.connect(WEBSOCKET_URL)
 
-        val loginMessage = JSONObject().apply {
-            put("type", "LOGIN_REQUEST")
-            put("email", email)
-            put("password", password)
-        }.toString()
-
-        val sent = webSocketClient.send(loginMessage)
-
-        if (!sent) {
-            val errorMsg =
-                "Failed to send login request via WebSocket. Connection might not be open or re-connection failed."
-            Log.e(TAG, errorMsg)
-            return Result.failure(RuntimeException(errorMsg))
-        }
-
-        return try {
-            val responseText = webSocketClient.incomingMessages.first { message ->
-                try {
-                    val jsonResponse = JSONObject(message)
-                    jsonResponse.optString("type") == "login"
-                } catch (e: Exception) {
-                    Log.w(TAG, "Invalid JSON response received: $message")
-                    false
-                }
-            }
-
-            val jsonResponse = JSONObject(responseText)
-            val success = jsonResponse.optBoolean("success")
-            val message = jsonResponse.optString("message")
-            val token = jsonResponse.optString("token")
-
-            val adminId = jsonResponse.optString("adminId")
-
-            if (success && token.isNotEmpty()) {
-                Result.success(Pair(token, adminId))
-            } else {
-                Result.failure(RuntimeException(message.ifEmpty { "Login failed: Unknown error" }))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error parsing login response: ${e.message}")
-            Result.failure(RuntimeException("Error processing login response: ${e.message}"))
-        }
+        return webSocketService.login(email, password)
     }
 }

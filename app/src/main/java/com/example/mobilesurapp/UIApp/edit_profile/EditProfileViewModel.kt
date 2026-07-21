@@ -2,13 +2,13 @@ package com.example.mobilesurapp.UIApp.edit_profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mobilesurapp.api.ApiResult
 import com.example.mobilesurapp.model.Admin
 import com.example.mobilesurapp.repository.UserProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,10 +36,10 @@ EditProfileViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    private var adminId: String? = null
+    private var adminId: Int? = null
 
     fun initializeProfile(admin: Admin) {
-        adminId = admin.id
+        adminId = admin.id.toIntOrNull()
         _currentAdminProfile.value = admin
         _name.value = admin.name
         _email.value = admin.email
@@ -69,19 +69,51 @@ EditProfileViewModel @Inject constructor(
         _error.value = null
 
         viewModelScope.launch {
-            userProfileRepository.updateProfile(currentId, currentName, currentEmail)
-                .collectLatest { result ->
+
+            val id = adminId
+
+            if (id == null) {
+                _loading.value = false
+                _updateSuccess.value = false
+                _error.value = "Invalid admin ID"
+                return@launch
+            }
+
+            when (
+                val result = userProfileRepository.updateProfile(
+                    id,
+                    currentName,
+                    currentEmail
+                )
+            ) {
+
+                is ApiResult.Success -> {
+
                     _loading.value = false
-                    result.onSuccess { success ->
-                        _updateSuccess.value = success
-                        if (success) {
-                            _currentAdminProfile.value = _currentAdminProfile.value?.copy(name = currentName, email = currentEmail)
-                        }
-                    }.onFailure { throwable ->
-                        _error.value = throwable.message
-                        _updateSuccess.value = false
+                    _updateSuccess.value = result.data
+
+                    if (result.data) {
+                        _currentAdminProfile.value =
+                            _currentAdminProfile.value?.copy(
+                                name = currentName,
+                                email = currentEmail
+                            )
                     }
+
                 }
+
+                is ApiResult.Error -> {
+
+                    _loading.value = false
+                    _updateSuccess.value = false
+                    _error.value = result.exception.message
+
+                }
+
+                ApiResult.Loading -> Unit
+
+            }
+
         }
     }
 }

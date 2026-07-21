@@ -2,6 +2,6 @@ package com.example.mobilesurapp.model
 
 data class FaceVerificationResult(
     val isMatch: Boolean,
-    val matchedUser: User?,
-    val distance: Float = -1.0f
+    val matchedEmployee: Employee?,
+    val distance: Float = -1f
 )
