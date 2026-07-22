@@ -37,9 +37,9 @@ data class Employee(
 
     val phone: String,
 
-    val department: String,
+    val department: String? = null,
 
-    val position: String,
+    val position: String? = null,
 
     val embeddings: FloatArray
 ) {

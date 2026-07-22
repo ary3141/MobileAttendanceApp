@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+import com.example.mobilesurapp.UIApp.register.RegisterScreen
 import com.example.mobilesurapp.UIApp.login.LoginScreen
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
 import com.example.mobilesurapp.UIApp.login.ReAuthScreen
@@ -21,6 +22,7 @@ import com.example.mobilesurapp.UIApp.attendance.AttendanceRoute
 
 import com.example.mobilesurapp.UIApp.employee.EmployeeRoute
 import com.example.mobilesurapp.UIApp.add_employee.AddEmployeeRoute
+import com.example.mobilesurapp.UIApp.dashboard.DashboardRoute
 
 import com.example.mobilesurapp.UIApp.profile.ProfileScreen
 import com.example.mobilesurapp.UIApp.edit_profile.EditProfileScreen
@@ -71,6 +73,24 @@ fun AppNavGraph(
                 // Temporary
                 onNavigateToBiometricLogin = {
                     navController.navigate("biometric_placeholder")
+                },
+
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                }
+
+            )
+
+        }
+
+        composable(Screen.Register.route) {
+
+            RegisterScreen(
+
+                onNavigateLogin = {
+
+                    navController.popBackStack()
+
                 }
 
             )
@@ -85,25 +105,21 @@ fun AppNavGraph(
 
         composable("dashboard") {
 
-            DashboardScreen(
+            DashboardRoute(
 
                 onAttendanceClick = {
-
-                    navController.navigate("camera")
-
+                    navController.navigate("attendance")
                 },
 
                 onEmployeeClick = {
-
                     navController.navigate("employee")
-
                 },
 
-                onSettingsClick = {
-
+                onProfileClick = {
                     navController.navigate("profile")
+                },
 
-                }
+                loginStateViewModel = loginStateViewModel
 
             )
 
@@ -115,7 +131,7 @@ fun AppNavGraph(
          * -------------------------
          */
 
-        composable("camera") {
+        composable("attendance") {
 
             AttendanceRoute(
 

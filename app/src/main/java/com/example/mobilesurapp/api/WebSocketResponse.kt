@@ -33,6 +33,31 @@ data class LoginResponse(
 
 )
 
+data class RegisterResponse(
+
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("success")
+    val success: Boolean,
+
+    @SerializedName("message")
+    val message: String? = null,
+
+    @SerializedName("adminId")
+    val adminId: Int? = null,
+
+    @SerializedName("username")
+    val username: String? = null,
+
+    @SerializedName("email")
+    val email: String? = null,
+
+    @SerializedName("role")
+    val role: String? = null
+
+)
+
 /**
  * Admin Profile
  */
@@ -90,6 +115,46 @@ data class EmployeeResponse(
 
 )
 
+data class EmployeeListResponse(
+
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("success")
+    val success: Boolean,
+
+    @SerializedName("message")
+    val message: String?,
+
+    @SerializedName("employees")
+    val employees: List<EmployeeDto> = emptyList()
+
+)
+
+data class EmployeeDto(
+
+    @SerializedName("employee_id")
+    val employeeId: Int?,
+
+    @SerializedName("employee_code")
+    val employeeCode: String?,
+
+    @SerializedName("name")
+    val name: String?,
+
+    @SerializedName("email")
+    val email: String?,
+
+    @SerializedName("phone")
+    val phone: String?,
+
+    @SerializedName("department")
+    val department: String?,
+
+    @SerializedName("position")
+    val position: String?
+)
+
 /**
  * Face Recognition
  */
@@ -129,7 +194,31 @@ data class FaceRecognitionResponse(
     val confidence: Float? = null
 
 )
+data class DashboardSummaryData(
 
+    @SerializedName("totalEmployees")
+    val totalEmployees: Int,
+
+    @SerializedName("attendanceToday")
+    val attendanceToday: Int
+
+)
+
+data class DashboardSummaryResponse(
+
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("success")
+    val success: Boolean,
+
+    @SerializedName("message")
+    val message: String? = null,
+
+    @SerializedName("data")
+    val data: DashboardSummaryData? = null
+
+)
 /**
  * Attendance
  */

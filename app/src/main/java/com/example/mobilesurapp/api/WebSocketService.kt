@@ -64,21 +64,65 @@ class WebSocketService @Inject constructor(
         }
     }
 
+    suspend fun register(
+        username: String,
+        email: String,
+        password: String
+    ): ApiResult<RegisterResponse> {
+
+        val request = RegisterRequest(
+            username = username,
+            email = email,
+            password = password
+        )
+
+        if (!client.send(request)) {
+            return ApiResult.Error(
+                Exception("Unable to send register request")
+            )
+        }
+
+        val response = waitForResponse("insert_admin")
+
+        val register =
+            gson.fromJson(
+                response,
+                RegisterResponse::class.java
+            )
+
+        return if (register.success) {
+
+            ApiResult.Success(register)
+
+        } else {
+
+            ApiResult.Error(
+                Exception(register.message ?: "Registration failed")
+            )
+
+        }
+
+    }
+
     suspend fun registerEmployee(
         employee: Employee
     ): ApiResult<Boolean> {
 
-        val request = RegisterEmployeeRequest(
-            adminId = employee.adminId ?: 0,
-            name = employee.name,
-            email = employee.email,
-            phone = employee.phone,
-            department = employee.department,
-            position = employee.position,
-            embeddings = employee.embeddings.map { it.toDouble() }
-        )
+        val request = employee.department?.let {
+            employee.position?.let { it1 ->
+                RegisterEmployeeRequest(
+                    adminId = employee.adminId ?: 0,
+                    name = employee.name,
+                    email = employee.email,
+                    phone = employee.phone,
+                    department = it,
+                    position = it1,
+                    embeddings = employee.embeddings.map { it.toDouble() }
+                )
+            }
+        }
 
-        if (!client.send(request)) {
+        if (!request?.let { client.send(it) }!!) {
             return ApiResult.Error(
                 Exception("Unable to send employee request")
             )
@@ -155,6 +199,85 @@ class WebSocketService @Inject constructor(
         )
     }
 
+    suspend fun getEmployees(): ApiResult<List<Employee>> {
+
+        val request = GetEmployeesRequest()
+
+        if (!client.send(request)) {
+            return ApiResult.Error(
+                Exception("Unable to request employees")
+            )
+        }
+
+        val response =
+            waitForResponse("employee_list")
+
+        val result =
+            gson.fromJson(
+                response,
+                EmployeeListResponse::class.java
+            )
+
+        return if (result.success) {
+
+            ApiResult.Success(
+                result.employees.map {
+
+                    Employee(
+                        employeeId = it.employeeId,
+                        employeeCode = it.employeeCode,
+                        adminId = null,
+                        name = it.name ?: "",
+                        email = it.email ?: "",
+                        phone = it.phone ?: "",
+                        department = it.department ?: "",
+                        position = it.position ?: "",
+                        embeddings = floatArrayOf()
+                    )
+
+                }
+            )
+
+        } else {
+
+            ApiResult.Error(
+                Exception(result.message)
+            )
+
+        }
+
+    }
+    suspend fun getDashboardSummary(): ApiResult<DashboardSummaryData> {
+
+        val request = DashboardSummaryRequest()
+
+        if (!client.send(request)) {
+
+            return ApiResult.Error(
+                Exception("Unable to request dashboard summary")
+            )
+
+        }
+
+        val response = waitForResponse("dashboard_summary")
+
+        val result =
+            gson.fromJson(
+                response,
+                DashboardSummaryResponse::class.java
+            )
+
+        if (!result.success || result.data == null) {
+
+            return ApiResult.Error(
+                Exception(result.message ?: "Unable to load dashboard summary")
+            )
+
+        }
+
+        return ApiResult.Success(result.data)
+
+    }
     suspend fun insertAttendance(
         employeeId: Int,
         checkType: String

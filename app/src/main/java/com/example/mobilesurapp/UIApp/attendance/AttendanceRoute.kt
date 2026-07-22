@@ -24,6 +24,8 @@ import com.example.mobilesurapp.UIApp.attendance.AttendanceScreen
 import com.example.mobilesurapp.domain.utils.MediaPipeUtils.toBitmapWithoutConverter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.mobilesurapp.UIApp.attendance.success.AttendanceSuccessScreen
+import com.example.mobilesurapp.UIApp.attendance.model.AttendanceStatus
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
@@ -78,9 +80,6 @@ fun AttendanceRoute(
 
         val imageAnalyzer =
             ImageAnalysis.Builder()
-                .setTargetResolution(
-                    Size(480, 640)
-                )
                 .setBackpressureStrategy(
                     ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
                 )
@@ -148,14 +147,33 @@ fun AttendanceRoute(
         }
 
     }
+    when (val status = uiState.status) {
 
-    AttendanceScreen(
-        uiState = uiState,
-        previewView = previewView,
-        onExitClick = onExitClick,
-        onSwitchCameraClick = {
-            viewModel.switchCamera()
+        is AttendanceStatus.Success -> {
+
+            AttendanceSuccessScreen(
+                employeeName = uiState.employeeName.orEmpty(),
+                employeeCode = uiState.employeeCode.orEmpty(),
+                attendanceTime = uiState.attendanceTime.orEmpty(),
+                attendanceDate = uiState.attendanceDate.orEmpty(),
+                onFinished = {
+                    viewModel.resetAttendance()
+                }
+            )
+
         }
-    )
 
+        else -> {
+
+            AttendanceScreen(
+                uiState = uiState,
+                previewView = previewView,
+                onExitClick = onExitClick,
+                onSwitchCameraClick = {
+                    viewModel.switchCamera()
+                }
+            )
+
+        }
+    }
 }

@@ -17,17 +17,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.mobilesurapp.UIApp.dashboard.model.ConnectionState
+import com.example.mobilesurapp.UIApp.dashboard.model.SystemStatus
 import com.example.mobilesurapp.ui.theme.MobileSurAppTheme
 
 @Composable
 fun StatusCard(
-    cameraOnline: Boolean = true,
-    serverOnline: Boolean = true,
-    databaseOnline: Boolean = true,
+    status: SystemStatus,
     modifier: Modifier = Modifier
 ) {
 
-    val allOnline = cameraOnline && serverOnline && databaseOnline
+    val allOnline =
+        status.camera == ConnectionState.ONLINE &&
+                status.server == ConnectionState.ONLINE &&
+                status.firebase == ConnectionState.ONLINE
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -64,7 +67,12 @@ fun StatusCard(
                     )
                 }
 
-                StatusChip(allOnline)
+                StatusChip(
+                    status = if (allOnline)
+                        ConnectionState.ONLINE
+                    else
+                        ConnectionState.ERROR
+                )
 
             }
 
@@ -82,7 +90,7 @@ fun StatusCard(
                 StatusItem(
                     modifier = Modifier.weight(1f),
                     title = "Camera",
-                    online = cameraOnline
+                    state = status.camera
                 )
 
                 VerticalDivider(
@@ -92,7 +100,7 @@ fun StatusCard(
                 StatusItem(
                     modifier = Modifier.weight(1f),
                     title = "Server",
-                    online = serverOnline
+                    state = status.server
                 )
 
                 VerticalDivider(
@@ -101,8 +109,8 @@ fun StatusCard(
 
                 StatusItem(
                     modifier = Modifier.weight(1f),
-                    title = "Database",
-                    online = databaseOnline
+                    title = "Firebase",
+                    state = status.firebase
                 )
             }
         }
@@ -111,39 +119,69 @@ fun StatusCard(
 
 @Composable
 private fun StatusChip(
-    online: Boolean
+    status: ConnectionState
 ) {
+
+    val color = when (status) {
+        ConnectionState.ONLINE -> Color(0xFFE8F8F1)
+        ConnectionState.CONNECTING -> Color(0xFFFFF7E0)
+        ConnectionState.OFFLINE,
+        ConnectionState.ERROR -> Color(0xFFFFECEC)
+    }
+
+    val textColor = when (status) {
+        ConnectionState.ONLINE -> Color(0xFF26A269)
+        ConnectionState.CONNECTING -> Color(0xFFF9A825)
+        ConnectionState.OFFLINE,
+        ConnectionState.ERROR -> Color(0xFFD32F2F)
+    }
+
+    val text = when (status) {
+        ConnectionState.ONLINE -> "Online"
+        ConnectionState.CONNECTING -> "Connecting"
+        ConnectionState.OFFLINE -> "Offline"
+        ConnectionState.ERROR -> "Error"
+    }
 
     Surface(
         shape = RoundedCornerShape(50),
-        color = if (online)
-            Color(0xFFE8F8F1)
-        else
-            Color(0xFFFFECEC)
+        color = color
     ) {
 
         Text(
-            text = if (online) "Online" else "Offline",
+            text = text,
             modifier = Modifier.padding(
                 horizontal = 18.dp,
                 vertical = 8.dp
             ),
-            color = if (online)
-                Color(0xFF26A269)
-            else
-                Color(0xFFD32F2F),
-            style = MaterialTheme.typography.titleMedium,
+            color = textColor,
             fontWeight = FontWeight.SemiBold
         )
+
     }
+
 }
 
 @Composable
 private fun StatusItem(
     modifier: Modifier = Modifier,
     title: String,
-    online: Boolean
+    state: ConnectionState
 ) {
+
+    val color = when (state) {
+        ConnectionState.ONLINE -> Color(0xFF26A269)
+        ConnectionState.CONNECTING -> Color(0xFFF9A825)
+        ConnectionState.OFFLINE -> Color(0xFFD32F2F)
+        ConnectionState.ERROR -> Color(0xFFD32F2F)
+    }
+
+    val text = when (state) {
+        ConnectionState.ONLINE -> "Online"
+        ConnectionState.CONNECTING -> "Connecting"
+        ConnectionState.OFFLINE -> "Offline"
+        ConnectionState.ERROR -> "Error"
+    }
 
     Column(
         modifier = modifier,
@@ -156,17 +194,16 @@ private fun StatusItem(
             fontWeight = FontWeight.SemiBold
         )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = if (online) "online" else "offline",
+            text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = if (online)
-                Color(0xFF26A269)
-            else
-                Color(0xFFD32F2F)
+            color = color
         )
+
     }
+
 }
 
 @Preview(showBackground = true)
@@ -178,7 +215,13 @@ private fun StatusCardPreview() {
                 .fillMaxWidth()
                 .padding(24.dp)
         ) {
-            StatusCard()
+            StatusCard(
+                status = SystemStatus(
+                    camera = ConnectionState.ONLINE,
+                    server = ConnectionState.ONLINE,
+                    firebase = ConnectionState.CONNECTING
+                )
+            )
         }
     }
 }

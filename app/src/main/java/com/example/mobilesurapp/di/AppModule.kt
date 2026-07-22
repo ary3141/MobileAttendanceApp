@@ -3,6 +3,9 @@ package com.example.mobilesurapp.di
 import android.content.Context
 import android.util.Base64
 import androidx.room.Room
+import com.example.mobilesurapp.UIApp.dashboard.data.repository.DashboardRepositoryImpl
+import com.example.mobilesurapp.UIApp.dashboard.domain.repository.DashboardRepository
+import com.example.mobilesurapp.UIApp.dashboard.domain.usecase.GetDashboardSummaryUseCase
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
 import com.example.mobilesurapp.api.WebSocketService
 import com.example.mobilesurapp.database.AppDatabase
@@ -25,6 +28,12 @@ import com.example.mobilesurapp.repository.LoginRepository
 import com.example.mobilesurapp.repository.LoginRepositoryImpl
 import com.example.mobilesurapp.repository.UserProfileRepository
 import com.example.mobilesurapp.repository.UserProfileRepositoryImpl
+import com.example.mobilesurapp.domain.usecase.RegisterUseCase
+import com.example.mobilesurapp.repository.RegisterRepository
+import com.example.mobilesurapp.repository.RegisterRepositoryImpl
+import com.example.mobilesurapp.repository.EmployeeRepository
+import com.example.mobilesurapp.repository.EmployeeRepositoryImpl
+import com.example.mobilesurapp.domain.usecase.GetEmployeesUseCase
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -133,7 +142,6 @@ object AppModule {
             "faceRecogntionDB"
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -145,6 +153,37 @@ object AppModule {
         return database.employeeDao()
     }
 
+    @Provides
+    @Singleton
+    fun provideEmployeeRepository(
+        webSocketService: WebSocketService
+    ): EmployeeRepository {
+
+        return EmployeeRepositoryImpl(webSocketService)
+
+    }
+
+    @Provides
+    fun provideDashboardRepository(
+        webSocketService: WebSocketService
+    ): DashboardRepository =
+        DashboardRepositoryImpl(webSocketService)
+    @Provides
+
+    fun provideDashboardSummaryUseCase(
+        repository: DashboardRepository
+    ): GetDashboardSummaryUseCase =
+        GetDashboardSummaryUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideGetEmployeesUseCase(
+        repository: EmployeeRepository
+    ): GetEmployeesUseCase {
+
+        return GetEmployeesUseCase(repository)
+
+    }
     @Provides
     @Singleton
     fun providePendingSyncDao(
@@ -167,6 +206,14 @@ object AppModule {
         webSocketService: WebSocketService
     ): LoginRepository {
         return LoginRepositoryImpl(webSocketService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRegisterRepository(
+        webSocketService: WebSocketService
+    ): RegisterRepository {
+        return RegisterRepositoryImpl(webSocketService)
     }
 
     @Provides
@@ -202,6 +249,14 @@ object AppModule {
         repository: LoginRepository
     ): LoginUseCase {
         return LoginUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRegisterUseCase(
+        repository: RegisterRepository
+    ): RegisterUseCase {
+        return RegisterUseCase(repository)
     }
 
     @Provides

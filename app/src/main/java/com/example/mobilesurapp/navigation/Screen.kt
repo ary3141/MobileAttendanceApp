@@ -7,6 +7,8 @@ sealed class Screen(val route: String) {
 
     object Login : Screen("login")
 
+    object Register : Screen("register")
+
     object BiometricLogin : Screen("biometricLogin")
 
     object Dashboard : Screen("dashboard")
@@ -20,7 +22,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
 
     object EditProfile :
-        Screen("editProfile/{adminId}/{name}/{email}") {
+        Screen("UpdateProfile/{adminId}/{name}/{email}") {
 
         fun createRoute(
             adminId: String,
@@ -38,7 +40,7 @@ sealed class Screen(val route: String) {
                 StandardCharsets.UTF_8.toString()
             )
 
-            return "editProfile/$adminId/$safeName/$safeEmail"
+            return "UpdateProfile/$adminId/$safeName/$safeEmail"
         }
     }
 

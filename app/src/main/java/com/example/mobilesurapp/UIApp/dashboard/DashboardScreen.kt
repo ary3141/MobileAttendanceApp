@@ -13,14 +13,16 @@ import androidx.compose.ui.unit.dp
 import com.example.mobilesurapp.UIApp.components.background.DashboardBackground
 import com.example.mobilesurapp.UIApp.dashboard.components.DashboardPanel
 import com.example.mobilesurapp.UIApp.dashboard.components.StatusCard
-import com.example.mobilesurapp.ui.theme.MobileSurAppTheme
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.mobilesurapp.UIApp.dashboard.model.ConnectionState
+import com.example.mobilesurapp.UIApp.dashboard.model.SystemStatus
 
 @Composable
 fun DashboardScreen(
 
-    username: String = "Admin",
-    role: String = "Administrator",
+    username: String,
+    role: String,
+
+    systemStatus: SystemStatus,
 
     onAttendanceClick: () -> Unit = {},
     onEmployeeClick: () -> Unit = {},
@@ -67,7 +69,9 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                StatusCard()
+                StatusCard(
+                    status = systemStatus
+                )
 
             }
 
@@ -77,14 +81,14 @@ fun DashboardScreen(
 
 }
 
-@Preview(showSystemUi = true)
-@Composable
-private fun DashboardPreview() {
-
-    MobileSurAppTheme {
-
-        DashboardScreen()
-
-    }
-
-}
+//@Preview(showSystemUi = true)
+//@Composable
+//private fun DashboardPreview() {
+//
+//    MobileSurAppTheme {
+//
+//        DashboardScreen()
+//
+//    }
+//
+//}

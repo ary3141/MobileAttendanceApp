@@ -22,7 +22,7 @@ fun EmployeeRoute(
         onBackClick = onBackClick,
         onAddEmployeeClick = onAddEmployeeClick,
         onEmployeeClick = { employee ->
-            onEmployeeClick(employee.id)
+            employee.employeeCode?.let(onEmployeeClick)
         }
     )
 

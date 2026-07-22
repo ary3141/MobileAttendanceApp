@@ -38,7 +38,7 @@ fun DashboardGrid(
         ) {
 
             DashboardInfoCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.2f),
                 title = "Employee Record",
                 icon = Icons.Rounded.Badge,
                 iconColor = Color(0xFFFF9800),
@@ -46,7 +46,7 @@ fun DashboardGrid(
             )
 
             DashboardInfoCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.1f),
                 title = "Settings",
                 icon = Icons.Rounded.Settings,
                 iconColor = Color(0xFF4CAF50),

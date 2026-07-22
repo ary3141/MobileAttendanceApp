@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mobilesurapp.UIApp.employee.model.Employee
+import com.example.mobilesurapp.model.Employee
 
 @Composable
 fun EmployeeCard(
@@ -54,13 +54,13 @@ fun EmployeeCard(
             ) {
 
                 Text(
-                    text = employee.fullName,
+                    text = employee.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
 
                 Text(
-                    text = employee.id,
+                    text = employee.employeeCode ?: "-",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,7 +77,6 @@ fun EmployeeCard(
     }
 
 }
-
 @Preview(showBackground = true)
 @Composable
 private fun EmployeeCardPreview() {
@@ -86,10 +85,15 @@ private fun EmployeeCardPreview() {
 
         EmployeeCard(
             employee = Employee(
-                id = "EMP-001",
-                fullName = "Arya Erlangga",
+                employeeId = 1,
+                employeeCode = "EMP-001",
+                adminId = 1,
+                name = "Arya Erlangga",
                 email = "arya@email.com",
-                phoneNumber = "08123456789"
+                phone = "08123456789",
+                department = "IT",
+                position = "Developer",
+                embeddings = floatArrayOf()
             ),
             onClick = {}
         )

@@ -100,9 +100,6 @@ fun AddEmployeeRoute(
 
         val imageAnalyzer =
             ImageAnalysis.Builder()
-                .setTargetResolution(
-                    Size(480, 640)
-                )
                 .setBackpressureStrategy(
                     ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
                 )

@@ -19,6 +19,22 @@ data class LoginRequest(
 
 )
 
+data class RegisterRequest(
+
+    @SerializedName("type")
+    val type: String = "insert_admin",
+
+    @SerializedName("username")
+    val username: String,
+
+    @SerializedName("email")
+    val email: String,
+
+    @SerializedName("password")
+    val password: String
+
+)
+
 data class BiometricLoginRequest(
 
     @SerializedName("type")
@@ -88,6 +104,13 @@ data class AttendanceRequest(
 
 )
 
+data class GetEmployeesRequest(
+
+    @SerializedName("type")
+    val type: String = "employee_list"
+
+)
+
 /**
  * Profile
  */
@@ -99,6 +122,13 @@ data class GetProfileRequest(
 
     @SerializedName("adminId")
     val adminId: Int
+
+)
+
+data class DashboardSummaryRequest(
+
+    @SerializedName("type")
+    val type: String = "dashboard_summary"
 
 )
 

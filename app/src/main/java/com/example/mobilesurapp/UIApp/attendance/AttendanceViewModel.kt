@@ -15,8 +15,11 @@ import com.example.mobilesurapp.domain.usecase.SyncOfflineFacesUseCase
 import com.example.mobilesurapp.domain.usecase.VerifyFaceUseCase
 import com.example.mobilesurapp.domain.utils.ImageCropper
 import com.example.mobilesurapp.face.FaceEmbedder
+import com.example.mobilesurapp.model.Employee
 import com.example.mobilesurapp.modelload.MediaPipeFaceDetector
 import com.google.mediapipe.tasks.vision.facedetector.FaceDetectorResult
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -163,9 +166,6 @@ class AttendanceViewModel @Inject constructor(
         collectionJob = viewModelScope.launch {
 
             for (second in COUNTDOWN_SECONDS downTo 1) {
-                _uiState.update {
-                    it.copy(countdown = second)
-                }
                 delay(1000)
             }
 
@@ -174,7 +174,30 @@ class AttendanceViewModel @Inject constructor(
         }
 
     }
+    fun resetAttendance() {
+        resetScanner()
+        _uiState.update {
+            it.copy(
 
+                status = AttendanceStatus.Idle,
+
+                employeeName = null,
+
+                employeeCode = null,
+
+                attendanceTime = null,
+
+                attendanceDate = null,
+
+                isFaceDetected = false,
+
+                isVerifying = false
+
+            )
+
+        }
+
+    }
     private fun verifyCollectedFace() {
 
         val detection = latestDetection
@@ -313,8 +336,8 @@ class AttendanceViewModel @Inject constructor(
                         ) {
 
                             showSuccess(
-                                verification.matchedEmployee.name,
-                                verification.distance
+                                employee = verification.matchedEmployee,
+                                similarity = verification.distance
                             )
 
                         } else {
@@ -363,24 +386,39 @@ class AttendanceViewModel @Inject constructor(
 
     }
     private suspend fun showSuccess(
-        name: String,
+        employee: Employee,
         similarity: Float?
     ) {
+
+        val now = LocalDateTime.now()
+
+        val timeFormatter =
+            DateTimeFormatter.ofPattern("hh:mm a")
+
+        val dateFormatter =
+            DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy")
 
         _uiState.update {
 
             it.copy(
-                status = AttendanceStatus.Success(name),
-                employeeName = name,
+
+                status = AttendanceStatus.Success(employee.name),
+
+                employeeName = employee.name,
+
+                employeeCode = employee.employeeCode,
+
+                attendanceTime = now.format(timeFormatter),
+
+                attendanceDate = now.format(dateFormatter),
+
                 similarity = similarity,
+
                 isVerifying = false
+
             )
 
         }
-
-        delay(SUCCESS_DURATION)
-
-        resetScanner()
 
     }
     private suspend fun showFailure(
@@ -429,8 +467,7 @@ class AttendanceViewModel @Inject constructor(
 
         _uiState.update {
             AttendanceUiState(
-                cameraState = it.cameraState,
-                countdown = 0
+                cameraState = it.cameraState
             )
         }
 

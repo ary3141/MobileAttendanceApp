@@ -12,9 +12,15 @@ data class AttendanceUiState(
 
     val employeeName: String? = null,
 
+    val employeeCode: String? = null,
+
     val similarity: Float? = null,
 
     val isVerifying: Boolean = false,
+
+    val attendanceTime: String? = null,
+
+    val attendanceDate: String? = null,
 
     val countdown: Int = 0
 )

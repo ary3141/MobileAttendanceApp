@@ -1,127 +1,356 @@
 package com.example.mobilesurapp.UIApp.profile
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.mobilesurapp.UIApp.login.LoginStateViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-        navController: NavController,
-        viewModel: ProfileViewModel = hiltViewModel(),
-        loginStateViewModel: LoginStateViewModel,
-        onNavigateToEditProfile: (String, String, String) -> Unit
-    )
-{
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel(),
+    loginStateViewModel: LoginStateViewModel,
+    onNavigateToEditProfile: (String, String, String) -> Unit
+) {
+
     val adminProfile by viewModel.adminProfile.collectAsState()
     val loggedInAdminId by loginStateViewModel.currentAdminId.collectAsState()
 
     LaunchedEffect(loggedInAdminId) {
-        loggedInAdminId?.let { id ->
-            viewModel.setAdminId(id)
+        loggedInAdminId?.let {
+            viewModel.setAdminId(it)
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .background(Color.Gray)
-        ) {
-            IconButton(
-                onClick = {
-                    navController.popBackStack()
+    Scaffold(
+
+        topBar = {
+
+            CenterAlignedTopAppBar(
+
+                title = {
+                    Text(
+                        "Settings",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 },
-                modifier = Modifier.padding(start = 16.dp, top = 24.dp).align(Alignment.TopStart)
-            ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+
+                navigationIcon = {
+
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+
+                },
+
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF5B3FD8)
+                )
+
+            )
+
+        }
+
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+
+            ProfileHeaderCard(
+                name = adminProfile?.name ?: "",
+                email = adminProfile?.email ?: "",
+                onClick = {
+                    adminProfile?.let {
+                        onNavigateToEditProfile(
+                            it.id,
+                            it.name,
+                            it.email
+                        )
+                    }
+                }
+            )
+
+            Text(
+                "Account",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            SettingsCard {
+
+                SettingsItem(
+                    icon = Icons.Default.Lock,
+                    title = "Change Password"
+                ) { }
+
+                HorizontalDivider()
+
+                SettingsItem(
+                    icon = Icons.Default.Notifications,
+                    title = "Notification Settings"
+                ) { }
+
+                HorizontalDivider()
+
+                SettingsItem(
+                    icon = Icons.Default.Security,
+                    title = "Security & PIN"
+                ) { }
+
             }
 
             Text(
-                text = "Profile",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 34.dp),
-                color = Color.White
+                "General",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
 
-            Column(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profile Image",
-                    modifier = Modifier.size(80.dp),
-                    tint = Color.White
-                )
-                Text(
-                    text = adminProfile?.name?: "Data admin masih null",
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 50.dp),
-                )
-            } 
-        }
+            SettingsCard {
 
-        // Menu List
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(color = Color.White)
-                .padding(horizontal = 32.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ProfileMenuItem("Edit Profile") { adminProfile?.let { onNavigateToEditProfile(it.id, adminProfile!!.name, adminProfile!!.email) } }
-            ProfileMenuItem("Change Password") { /* Navigate */ }
-            ProfileMenuItem("Notification Settings") { /* Navigate */ }
-            ProfileMenuItem("About App") { /* Navigate */ }
-            Button(
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "System Information"
+                ) { }
+
+                HorizontalDivider()
+
+                SettingsItem(
+                    icon = Icons.AutoMirrored.Filled.Help,
+                    title = "Help & Support"
+                ) { }
+
+                HorizontalDivider()
+
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "About MobileSur",
+                    trailing = "v1.0.0"
+                ) { }
+
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            OutlinedButton(
+
                 onClick = {
+
                     loginStateViewModel.logout()
+
                     navController.navigate("login") {
-                        popUpTo("camera") { inclusive = true }
+                        popUpTo("camera") {
+                            inclusive = true
+                        }
                     }
+
                 },
+
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(56.dp),
+
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.Red
+                )
+
             ) {
+
+                Icon(
+                    Icons.AutoMirrored.Filled.Logout,
+                    null
+                )
+
+                Spacer(modifier = Modifier.size(8.dp))
+
                 Text("Log Out")
+
             }
+
         }
+
     }
+
 }
 
 @Composable
-fun ProfileMenuItem(text: String, onClick: () -> Unit) {
+fun ProfileHeaderCard(
+    name: String,
+    email: String,
+    onClick: () -> Unit
+) {
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Icon(
+                Icons.Default.AccountCircle,
+                null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+
+                Text(
+                    name,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Text(
+                    email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+
+            }
+
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                null
+            )
+
+        }
+
+    }
+
+}
+
+@Composable
+fun SettingsCard(
+    content: @Composable () -> Unit
+) {
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(3.dp)
+    ) {
+        Column {
+            content()
+        }
+    }
+
+}
+
+@Composable
+fun SettingsItem(
+    icon: ImageVector,
+    title: String,
+    trailing: String? = null,
+    onClick: () -> Unit
+) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Edit, contentDescription = null, tint = Color.Gray)
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = text)
+
+        Icon(
+            icon,
+            null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.size(16.dp))
+
+        Text(
+            text = title,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (trailing != null) {
+
+            Text(
+                trailing,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.size(8.dp))
+
         }
-        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            null,
+            tint = Color.Gray
+        )
+
     }
+
 }

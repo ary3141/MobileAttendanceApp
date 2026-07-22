@@ -1,44 +1,27 @@
 package com.example.mobilesurapp.UIApp.employee
 
 import androidx.lifecycle.ViewModel
-import com.example.mobilesurapp.UIApp.employee.model.Employee
+import androidx.lifecycle.viewModelScope
+import com.example.mobilesurapp.model.Employee
 import com.example.mobilesurapp.UIApp.employee.model.EmployeeUiState
+import com.example.mobilesurapp.api.ApiResult
+import com.example.mobilesurapp.domain.usecase.GetEmployeesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class EmployeeViewModel @Inject constructor() : ViewModel() {
+class EmployeeViewModel @Inject constructor(
 
-    private val allEmployees = listOf(
-        Employee(
-            id = "EMP-001",
-            fullName = "Arya Erlangga",
-            email = "arya@email.com",
-            phoneNumber = "08123456789"
-        ),
-        Employee(
-            id = "EMP-002",
-            fullName = "John Doe",
-            email = "john@email.com",
-            phoneNumber = "08123456780"
-        ),
-        Employee(
-            id = "EMP-003",
-            fullName = "Jane Smith",
-            email = "jane@email.com",
-            phoneNumber = "08123456781"
-        ),
-        Employee(
-            id = "EMP-004",
-            fullName = "Michael Johnson",
-            email = "michael@email.com",
-            phoneNumber = "08123456782"
-        )
-    )
+    private val getEmployeesUseCase: GetEmployeesUseCase
+
+) : ViewModel() {
+
+    private var allEmployees = emptyList<Employee>()
 
     private val _uiState = MutableStateFlow(
         EmployeeUiState(
@@ -51,6 +34,50 @@ class EmployeeViewModel @Inject constructor() : ViewModel() {
 
     val uiState: StateFlow<EmployeeUiState> = _uiState.asStateFlow()
 
+    init {
+        loadEmployees()
+    }
+    private fun loadEmployees() {
+
+        viewModelScope.launch {
+
+            _uiState.update {
+                it.copy(isLoading = true)
+            }
+
+            when(val result = getEmployeesUseCase()) {
+
+                is ApiResult.Success -> {
+
+                    allEmployees = result.data
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            employees = allEmployees
+                        )
+                    }
+
+                }
+
+                is ApiResult.Error -> {
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.exception.message
+                        )
+                    }
+
+                }
+
+                is ApiResult.Loading -> {}
+            }
+
+        }
+
+    }
+
     fun onSearchQueryChanged(query: String) {
 
         val filteredEmployees =
@@ -58,8 +85,8 @@ class EmployeeViewModel @Inject constructor() : ViewModel() {
                 allEmployees
             } else {
                 allEmployees.filter {
-                    it.fullName.contains(query, ignoreCase = true) ||
-                            it.id.contains(query, ignoreCase = true)
+                    it.name.contains(query, ignoreCase = true) ||
+                            (it.employeeCode ?: "").contains(query, ignoreCase = true)
                 }
             }
 

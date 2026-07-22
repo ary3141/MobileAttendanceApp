@@ -1,18 +1,18 @@
 package com.example.mobilesurapp.UIApp.attendance.model
 
-sealed interface AttendanceStatus {
+sealed class AttendanceStatus {
 
-    data object Idle : AttendanceStatus
+    object Idle : AttendanceStatus()
 
-    data object Collecting : AttendanceStatus
+    object Collecting : AttendanceStatus()
 
-    data object Verifying : AttendanceStatus
+    object Verifying : AttendanceStatus()
 
     data class Success(
         val employeeName: String
-    ) : AttendanceStatus
+    ) : AttendanceStatus()
 
     data class Failed(
-        val message: String = "Face not recognized"
-    ) : AttendanceStatus
+        val message: String
+    ) : AttendanceStatus()
 }
